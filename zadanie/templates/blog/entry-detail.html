@@ -1,0 +1,8 @@
+{% extends "blog/entry-base.html" %}
+
+{% block header %}
+<h1>Entry</h1>
+<p>title: {{ entry.title }}</p>
+<p>created: {{ entry.created }}</p>
+<p>body: {{ entry.body|truncatewords:100 }}</p>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -11,8 +12,8 @@ def hundred_years_from_now():
 
 class PublishedEntryManager(models.Manager):
     def get_queryset(self):
-        queryset = super().get_queryset()
         now = timezone.now()
+        queryset = super().get_queryset()
         queryset = queryset.filter(pub_date__lt = now)
         return queryset
 
@@ -25,7 +26,12 @@ class Entry(models.Model):
     pub_date = models.DateTimeField(default = hundred_years_from_now)
     comments_count = models.PositiveSmallIntegerField(default = 0)
 
+    objects = models.Manager()
     published = PublishedEntryManager()
 
     class Meta:
         verbose_name_plural = "Entries"
+
+
+    def get_absolut_url(self):
+        return reverse('blog:entry-detail', kwargs={'pk':self.id})
