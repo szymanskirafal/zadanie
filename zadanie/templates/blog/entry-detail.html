@@ -2,7 +2,12 @@
 
 {% block header %}
 <h1>Entry</h1>
+{% endblock %}
+
+{% block main %}
 <p>title: {{ entry.title }}</p>
 <p>created: {{ entry.created }}</p>
-<p>body: {{ entry.body|truncatewords:100 }}</p>
+<p>body: {{ entry.body|linebreaks }}</p>
+<hr>
+<a class="btn btn-primary" href="{% url 'blog:entry-update' entry.id %}" role="button">Edit</a>
 {% endblock %}

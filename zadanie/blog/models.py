@@ -11,6 +11,7 @@ def hundred_years_from_now():
 
 
 class PublishedEntryManager(models.Manager):
+
     def get_queryset(self):
         now = timezone.now()
         queryset = super().get_queryset()
@@ -30,8 +31,12 @@ class Entry(models.Model):
     published = PublishedEntryManager()
 
     class Meta:
+        ordering = ['-modified']
         verbose_name_plural = "Entries"
 
 
     def get_absolut_url(self):
-        return reverse('blog:entry-detail', kwargs={'pk':self.id})
+        viewname = 'blog:entry-detail'
+        kwargs = {'pk': self.id}
+        absolut_url = reverse(viewname, kwargs = kwargs)
+        return absolut_url

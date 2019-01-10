@@ -5,13 +5,22 @@ from . import views
 app_name = 'blog'
 urlpatterns = [
     path(
-        route = 'entries/<int:pk>/',
-        view = views.EntryDetailView.as_view(),
+        'entries/<int:pk>/',
+        views.EntryDetailView.as_view(),
         name = 'entry-detail'),
     path(
-        route = 'entries/',
-        view = views.EntryListView.as_view(),
+        'entries/<int:pk>/update/',
+        views.EntryUpdateView.as_view(),
+        name = 'entry-update'),
+    path(
+        'entries/create/',
+        views.EntryCreateView.as_view(),
+        name = 'entry-create'),
+    path(
+        'entries/',
+        views.EntryListView.as_view(),
         name = 'entries'),
+
 
 
 
