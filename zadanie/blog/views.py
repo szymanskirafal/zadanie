@@ -4,21 +4,9 @@ from django.views import generic
 from .forms import EntryForm
 from .models import Entry
 
-"""
 
 
 
-class EntryDeleteView(generic.DeleteView):
-    context_object_name = 'entry'
-    model = Entry
-    template_name = 'blog/entry-delete.html'
-
-
-
-
-
-
-"""
 class EntryCreateView(generic.CreateView):
     form_class = EntryForm
     model = Entry
@@ -31,11 +19,21 @@ class EntryDetailView(generic.DetailView):
     model = Entry
     template_name = 'blog/entry-detail.html'
 
+    def get_queryset(self):
+        self.queryset = Entry.published.all()
+        queryset = super().get_queryset()
+        return queryset
+
 
 class EntryListView(generic.ListView):
     context_object_name = 'entries'
     model = Entry
     template_name = 'blog/entries.html'
+
+    def get_queryset(self):
+        self.queryset = Entry.published.all()
+        queryset = super().get_queryset()
+        return queryset
 
 
 class EntryUpdateView(generic.UpdateView):

@@ -114,3 +114,44 @@ class TestEntryDetailUrl(TestCase):
         kwargs_given = self.url_resolved.kwargs
         kwargs_expected = {'pk': 1}
         self.assertEqual(kwargs_given, kwargs_expected)
+
+
+class TestEntryUpdateUrl(TestCase):
+
+    def setUp(self):
+        self.url_resolved = resolve('/blog/entries/1/update/')
+
+    def test_url_app_name(self):
+        app_name_given = self.url_resolved.app_name
+        app_name_expected = 'blog'
+        self.assertEqual(app_name_given, app_name_expected)
+
+    def test_url_reverse(self):
+        url_given = reverse('blog:entry-update', kwargs = {'pk': 1})
+        url_expected = '/blog/entries/1/update/'
+        self.assertEqual(url_given, url_expected)
+
+    def test_url_func_name(self):
+        func_name_given = self.url_resolved.func.__name__
+        func_name_expected = 'EntryUpdateView'
+        self.assertEqual(func_name_given, func_name_expected)
+
+    def test_url_name(self):
+        url_name_given = self.url_resolved.url_name
+        url_name_expected = 'entry-update'
+        self.assertEqual(url_name_given, url_name_expected)
+
+    def test_url_namespace(self):
+        namespace_given = self.url_resolved.namespace
+        namespace_expected = 'blog'
+        self.assertEqual(namespace_given, namespace_expected)
+
+    def test_url_view_name(self):
+        view_name_given = self.url_resolved.view_name
+        view_name_expected = 'blog:entry-update'
+        self.assertEqual(view_name_given, view_name_expected)
+
+    def test_url_kwargs(self):
+        kwargs_given = self.url_resolved.kwargs
+        kwargs_expected = {'pk': 1}
+        self.assertEqual(kwargs_given, kwargs_expected)

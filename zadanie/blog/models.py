@@ -2,12 +2,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from .utils import hundred_years_from_now
 
-def hundred_years_from_now():
-    now = timezone.now()
-    hundred_years = timezone.timedelta(days=100*365)
-    hundred_years_from_now =  now + hundred_years
-    return hundred_years_from_now
 
 
 class PublishedEntryManager(models.Manager):
