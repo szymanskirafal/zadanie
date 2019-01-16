@@ -5,7 +5,8 @@
 
 {% for entry in entries %}
 <a href="{{ entry.get_absolut_url }}">{{ entry.title }}</a>
-<br><br>
+<p>published: {{ entry.pub_date }}</p>
+
 {% endfor %}
 
 {% endblock %}

@@ -10,7 +10,6 @@ from ..views import EntryCreateView, EntryDetailView, EntryListView, EntryUpdate
 from ..utils import yesterday
 
 
-
 class TestEntryListViewConstruction(TestCase):
 
     def test_view_inherits_from_correct_class(self):
@@ -101,8 +100,13 @@ class TestEntryListViewResponse(TestCase):
         self.assertNotContains(response, text2)
 
     def test_number_of_queries(self):
-        self.assertNumQueries(2):
+        entries = Entry.published.all()
+        for e in entries:
+            print(e)
 
+        print('________  num  __________________')
+        self.assertNumQueries(1)
+        print('________  num  __________________')
 
 
 class TestEntryDetailViewConstruction(TestCase):

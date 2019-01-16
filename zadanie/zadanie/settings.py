@@ -43,6 +43,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'coverage',
+    'debug_toolbar',
 ]
 
 LOCAL_APPS = [
@@ -54,6 +55,8 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 
 MIDDLEWARE = [
+
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -134,3 +137,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+
+DEBUG_TOOLBAR_CONFIG = {
+    'DISABLE_PANELS': [
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+    ],
+    'SHOW_TEMPLATE_CONTEXT': True,
+}
+# https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
+INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']

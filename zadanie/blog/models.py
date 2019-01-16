@@ -30,6 +30,8 @@ class Entry(models.Model):
         ordering = ['-modified']
         verbose_name_plural = "Entries"
 
+    def __str__(self):
+        return self.title
 
     def get_absolut_url(self):
         viewname = 'blog:entry-detail'
