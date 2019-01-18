@@ -25,11 +25,12 @@ class TestEntryListViewConstruction(TestCase):
         self.assertEqual(view.template_name, 'blog/entries.html')
 
 
-class TestEntryListViewFactoried(TestCase):
+class TestAsEntryListViewWithRequestFactory(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.request = self.factory.get('/blog/entries/')
+        self.request = self.factory.get('/fake-url')
+        self.request.template_name = 'blog/entries.html'
         self.response = EntryListView.as_view()(self.request)
 
     def test_status_code(self):
@@ -42,6 +43,11 @@ class TestEntryListViewFactoried(TestCase):
         self.request.user = AnonymousUser()
         status_code_given = self.response.status_code
         self.assertEqual(status_code_expected, status_code_given)
+
+    def test_template_used(self):
+        template_name_expected = 'blog/entries.html'
+        template_name_given = self.response.template_name
+        self.assertTrue(template_name_expected, template_name_given)
 
 
 class TestEntryListViewResponse(TestCase):
@@ -99,14 +105,6 @@ class TestEntryListViewResponse(TestCase):
         self.assertNotContains(response, text1)
         self.assertNotContains(response, text2)
 
-    def test_number_of_queries(self):
-        entries = Entry.published.all()
-        for e in entries:
-            print(e)
-
-        print('________  num  __________________')
-        self.assertNumQueries(1)
-        print('________  num  __________________')
 
 
 class TestEntryDetailViewConstruction(TestCase):
@@ -125,25 +123,82 @@ class TestEntryDetailViewConstruction(TestCase):
         self.assertEqual(self.view.template_name, 'blog/entry-detail.html')
 
 
-class TestEntryDetailViewResponse(TestCase):
+
+class TestEntryDetailViewWithRequestFactory(TestCase):
 
     def setUp(self):
-        entry = Entry.objects.create(title = 'uno', body = 'some text')
-        view_name = 'blog:entry-detail'
-        kwargs = {'pk': entry.pk}
-        url = reverse(view_name, kwargs = kwargs)
-        self.response = self.client.get(url)
-"""
-    def test_template_used(self):
-        self.assertTemplateUsed(self.response, 'blog/entry-detail.html')
-"""
-"""
+        self.entry_published_1 = Entry.objects.create(
+            title = 'tre',
+            body = 'test',
+            pub_date = yesterday()
+        )
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/fake-url')
+        self.request.template_name = 'blog/entry-detail.html'
+        self.response = EntryDetailView.as_view()(
+            self.request,
+            pk = self.entry_published_1.pk
+        )
+
     def test_status_code(self):
         status_code_expected = 200
         status_code_given = self.response.status_code
         self.assertEqual(status_code_expected, status_code_given)
-"""
-"""
-    def test_object_in_context(self):
-        self.assertIn('entry', self.response.context)
-"""
+
+    def test_status_code_for_anonymous_user(self):
+        status_code_expected = 200
+        request = self.request
+        request.user = AnonymousUser()
+        response = EntryDetailView.as_view()(
+            request,
+            pk = self.entry_published_1.pk
+        )
+        status_code_given = response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
+
+    def test_template_used(self):
+        template_name_expected = 'blog/entry-detail.html'
+        template_name_given = self.response.template_name
+        self.assertTrue(template_name_expected, template_name_given)
+
+
+
+class TestEntryDetailViewResponse(TestCase):
+
+    def setUp(self):
+        self.entry_not_published = Entry.objects.create(
+            title = 'uno',
+            body = 'test'
+        )
+        self.entry_published_1 = Entry.objects.create(
+            title = 'due',
+            body = 'test',
+            pub_date = yesterday()
+        )
+        kwargs = {'pk': self.entry_published_1.pk}
+        url = reverse('blog:entry-detail', kwargs = kwargs)
+        self.response = self.client.get(url)
+        self.entry_in_the_view = self.response.context['entry']
+
+    def test_not_published_entries_not_in_the_view(self):
+        condition = self.entry_not_published != self.entry_in_the_view
+        self.assertTrue(condition)
+
+    def test_published_entry_only_in_the_view(self):
+        condition = self.entry_published_1 == self.entry_in_the_view
+        self.assertTrue(condition)
+
+    def test_template_used(self):
+        response = self.response
+        template_name = 'blog/entry-detail.html'
+        self.assertTemplateUsed(response, template_name)
+
+    def test_correct_text_in_response(self):
+        response = self.response
+        text = self.entry_published_1.title
+        self.assertContains(response, text)
+
+    def test_not_expected_text_not_in_response(self):
+        response = self.response
+        text = self.entry_not_published.title
+        self.assertNotContains(response, text)
