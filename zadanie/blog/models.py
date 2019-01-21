@@ -5,7 +5,6 @@ from django.utils import timezone
 from .utils import hundred_years_from_now
 
 
-
 class PublishedEntryManager(models.Manager):
 
     def get_queryset(self):
@@ -17,7 +16,7 @@ class PublishedEntryManager(models.Manager):
 
 class Entry(models.Model):
     title = models.CharField(max_length = 30)
-    body = models.TextField(max_length = 1000)
+    body = models.TextField(max_length = 1000, default = 'some text')
     created = models.DateTimeField(auto_now_add = True)
     modified = models.DateTimeField(auto_now = True)
     pub_date = models.DateTimeField(default = hundred_years_from_now)

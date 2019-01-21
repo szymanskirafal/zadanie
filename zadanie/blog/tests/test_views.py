@@ -1,6 +1,6 @@
 from django.test import RequestFactory, TestCase
 from django.views import generic
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from django.contrib.auth.models import AnonymousUser
 
@@ -202,3 +202,54 @@ class TestEntryDetailViewResponse(TestCase):
         response = self.response
         text = self.entry_not_published.title
         self.assertNotContains(response, text)
+
+
+class TestEntryCreateViewConstruction(TestCase):
+
+    def setUp(self):
+        self.view = EntryCreateView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.CreateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_attrs(self):
+        self.assertEqual(self.view.form_class, EntryForm)
+        self.assertEqual(self.view.model, Entry)
+        self.assertEqual(self.view.success_url, reverse('blog:entry-created'))
+        self.assertEqual(self.view.template_name, 'blog/entry-create.html')
+
+
+class TestEntryCreateView(TestCase):
+
+    def test_view_creates_instance(self):
+        self.assertEqual(Entry.objects.count(), 0)
+        path = '/blog/entries/create/'
+        data = {'title':'Pizza', 'body':'some text', 'pub_date':'2010-12-06',}
+        response = self.client.post(path, data = data)
+        self.assertEqual(Entry.objects.last().title, "Pizza")
+        self.assertEqual(Entry.objects.last().body, "some text")
+        self.assertEqual(Entry.objects.count(), 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_view_creates_published_instance(self):
+        self.assertEqual(Entry.objects.count(), 0)
+        path = '/blog/entries/create/'
+        data = {'title':'Pizza', 'body':'some text', 'pub_date':'2000-12-06',}
+        response = self.client.post(path, data = data)
+        self.assertEqual(Entry.published.last().title, "Pizza")
+        self.assertEqual(Entry.published.last().body, "some text")
+        self.assertEqual(Entry.published.count(), 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_view_creates_not_published_instance(self):
+        self.assertEqual(Entry.objects.count(), 0)
+        path = '/blog/entries/create/'
+        data = {'title':'Pizza', 'body':'some text', 'pub_date':'3000-12-06',}
+        response = self.client.post(path, data = data)
+        self.assertEqual(Entry.objects.count(), 1)
+        self.assertEqual(Entry.published.count(), 0)
+        self.assertEqual(Entry.objects.last().title, "Pizza")
+        self.assertEqual(Entry.objects.last().body, "some text")
+        self.assertEqual(response.status_code, 302)

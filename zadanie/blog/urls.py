@@ -17,12 +17,13 @@ urlpatterns = [
         views.EntryCreateView.as_view(),
         name = 'entry-create'),
     path(
+        'entries/created/',
+        views.EntryCreatedTemplateView.as_view(),
+        name = 'entry-created'),
+    path(
         'entries/',
         views.EntryListView.as_view(),
         name = 'entries'),
-
-
-
 
 
 ]

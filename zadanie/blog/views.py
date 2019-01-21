@@ -5,14 +5,14 @@ from .forms import EntryForm
 from .models import Entry
 
 
-
-
 class EntryCreateView(generic.CreateView):
     form_class = EntryForm
     model = Entry
-    success_url = reverse_lazy('blog:entries')
+    success_url = '/blog/entries/created/'
     template_name = 'blog/entry-create.html'
 
+class EntryCreatedTemplateView(generic.TemplateView):
+    template_name = 'blog/entry-created.html'
 
 class EntryDetailView(generic.DetailView):
     context_object_name = 'entry'

@@ -7,4 +7,8 @@ class EntryForm(ModelForm):
 
     class Meta:
         model = Entry
-        fields = ['title', 'body', 'pub_date']
+        fields = [
+            'title',
+            'body',
+            'pub_date',
+        ]
