@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from ..forms import EntryForm
 from ..models import Entry
 from ..views import EntryCreateView, EntryDetailView, EntryListView, EntryUpdateView
-from ..utils import yesterday
+from ..utils import hundred_years_from_now, yesterday
 
 
 class TestEntryListViewConstruction(TestCase):
@@ -69,7 +69,7 @@ class TestEntryListViewResponse(TestCase):
         )
         url = reverse('blog:entries')
         self.response = self.client.get(url)
-        self.entries_in_the_view = self.response.context['entries']
+        self.entries_in_the_view = self.response.context.get('entries', None)
 
     def test_not_published_entries_not_in_the_view(self):
         condition = self.entry_not_published not in self.entries_in_the_view
@@ -176,9 +176,9 @@ class TestEntryDetailViewResponse(TestCase):
             pub_date = yesterday()
         )
         kwargs = {'pk': self.entry_published_1.pk}
-        url = reverse('blog:entry-detail', kwargs = kwargs)
-        self.response = self.client.get(url)
-        self.entry_in_the_view = self.response.context['entry']
+        path = reverse('blog:entry-detail', kwargs = kwargs)
+        self.response = self.client.get(path)
+        self.entry_in_the_view = self.response.context.get('entry', None)
 
     def test_not_published_entries_not_in_the_view(self):
         condition = self.entry_not_published != self.entry_in_the_view
@@ -220,36 +220,65 @@ class TestEntryCreateViewConstruction(TestCase):
         self.assertEqual(self.view.success_url, reverse('blog:entry-created'))
         self.assertEqual(self.view.template_name, 'blog/entry-create.html')
 
+class TestEntryUpdateView(TestCase):
+
+    def test_view_updates_field(self):
+        entry = Entry.objects.create(
+            title="Vernazza",
+            body="nothing special",
+        )
+        field_value_before_update = entry.title
+        viewname = 'blog:entry-update'
+        kwargs = {'pk': entry.pk}
+        path = reverse(viewname, kwargs = kwargs)
+        data_to_post = {
+            'title':'Pizza',
+            'body':'some text',
+            'pub_date':'2000-11-11',
+        }
+        response = self.client.post(path, data = data_to_post)
+        self.assertEqual(response.status_code, 302)
+        entry.refresh_from_db()
+        field_value_after_update = entry.title
+        field_value_changed_to = data_to_post.get('title', None)
+        self.assertNotEqual(field_value_before_update, field_value_after_update)
+        self.assertEqual(field_value_changed_to, field_value_after_update)
+
+
+
 
 class TestEntryCreateView(TestCase):
 
+    def setUp(self):
+        self.data = {'title':'Pizza', 'body':'some text',}
+
     def test_view_creates_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = '/blog/entries/create/'
-        data = {'title':'Pizza', 'body':'some text', 'pub_date':'2010-12-06',}
-        response = self.client.post(path, data = data)
-        self.assertEqual(Entry.objects.last().title, "Pizza")
-        self.assertEqual(Entry.objects.last().body, "some text")
+        path = reverse('blog:entry-create')
+        self.data['pub_date'] = yesterday().strftime('%Y-%m-%d')
+        response = self.client.post(path, data = self.data)
+        self.assertEqual(Entry.objects.last().title, self.data.get('title', None))
+        self.assertEqual(Entry.objects.last().body, self.data.get('body', None))
         self.assertEqual(Entry.objects.count(), 1)
         self.assertEqual(response.status_code, 302)
 
     def test_view_creates_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = '/blog/entries/create/'
-        data = {'title':'Pizza', 'body':'some text', 'pub_date':'2000-12-06',}
-        response = self.client.post(path, data = data)
-        self.assertEqual(Entry.published.last().title, "Pizza")
-        self.assertEqual(Entry.published.last().body, "some text")
+        path = reverse('blog:entry-create')
+        self.data['pub_date'] = yesterday().strftime('%Y-%m-%d')
+        response = self.client.post(path, data = self.data)
+        self.assertEqual(Entry.published.last().title, self.data.get('title', None))
+        self.assertEqual(Entry.published.last().body, self.data.get('body', None))
         self.assertEqual(Entry.published.count(), 1)
         self.assertEqual(response.status_code, 302)
 
     def test_view_creates_not_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = '/blog/entries/create/'
-        data = {'title':'Pizza', 'body':'some text', 'pub_date':'3000-12-06',}
-        response = self.client.post(path, data = data)
+        path = reverse('blog:entry-create')
+        self.data['pub_date'] = hundred_years_from_now().strftime('%Y-%m-%d')
+        response = self.client.post(path, data = self.data)
         self.assertEqual(Entry.objects.count(), 1)
         self.assertEqual(Entry.published.count(), 0)
-        self.assertEqual(Entry.objects.last().title, "Pizza")
-        self.assertEqual(Entry.objects.last().body, "some text")
+        self.assertEqual(Entry.objects.last().title, self.data.get('title', None))
+        self.assertEqual(Entry.objects.last().body, self.data.get('body', None))
         self.assertEqual(response.status_code, 302)
