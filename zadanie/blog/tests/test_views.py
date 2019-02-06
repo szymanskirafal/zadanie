@@ -1,12 +1,12 @@
 from django.test import RequestFactory, TestCase
-from django.views import generic
 from django.urls import reverse, reverse_lazy
+from django.views import generic
 
 from django.contrib.auth.models import AnonymousUser
 
 from ..forms import EntryForm
 from ..models import Entry
-from ..views import EntryCreateView, EntryDetailView, EntryListView, EntryUpdateView
+from ..views import EntryCreateView, EntryCreatedTemplateView, EntryDetailView, EntryListView, EntryUpdateView
 from ..utils import hundred_years_from_now, yesterday
 
 
@@ -220,30 +220,26 @@ class TestEntryCreateViewConstruction(TestCase):
         self.assertEqual(self.view.success_url, reverse('blog:entry-created'))
         self.assertEqual(self.view.template_name, 'blog/entry-create.html')
 
-class TestEntryUpdateView(TestCase):
 
-    def test_view_updates_field(self):
-        entry = Entry.objects.create(
-            title="Vernazza",
-            body="nothing special",
-        )
-        field_value_before_update = entry.title
-        viewname = 'blog:entry-update'
-        kwargs = {'pk': entry.pk}
-        path = reverse(viewname, kwargs = kwargs)
-        data_to_post = {
-            'title':'Pizza',
-            'body':'some text',
-            'pub_date':'2000-11-11',
-        }
-        response = self.client.post(path, data = data_to_post)
-        self.assertEqual(response.status_code, 302)
-        entry.refresh_from_db()
-        field_value_after_update = entry.title
-        field_value_changed_to = data_to_post.get('title', None)
-        self.assertNotEqual(field_value_before_update, field_value_after_update)
-        self.assertEqual(field_value_changed_to, field_value_after_update)
 
+class TestEntryCreatedTemplateView(TestCase):
+
+    def setUp(self):
+        factory = RequestFactory()
+        url = '/fake-url'
+        self.request = factory.get(url)
+        self.view = EntryCreatedTemplateView.as_view()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.TemplateView
+        class_given = self.view.view_class.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_uses_correct_template(self):
+        response = self.view(self.request)
+        template_name_expected = ['blog/entry-created.html']
+        template_name_given = response.template_name
+        self.assertEqual(template_name_expected, template_name_given)
 
 
 
@@ -282,3 +278,28 @@ class TestEntryCreateView(TestCase):
         self.assertEqual(Entry.objects.last().title, self.data.get('title', None))
         self.assertEqual(Entry.objects.last().body, self.data.get('body', None))
         self.assertEqual(response.status_code, 302)
+
+
+class TestEntryUpdateView(TestCase):
+
+    def test_view_updates_field(self):
+        entry = Entry.objects.create(
+            title="Vernazza",
+            body="nothing special",
+        )
+        field_value_before_update = entry.title
+        viewname = 'blog:entry-update'
+        kwargs = {'pk': entry.pk}
+        path = reverse(viewname, kwargs = kwargs)
+        data_to_post = {
+            'title':'Pizza',
+            'body':'some text',
+            'pub_date':'2000-11-11',
+        }
+        response = self.client.post(path, data = data_to_post)
+        self.assertEqual(response.status_code, 302)
+        entry.refresh_from_db()
+        field_value_after_update = entry.title
+        field_value_changed_to = data_to_post.get('title', None)
+        self.assertNotEqual(field_value_before_update, field_value_after_update)
+        self.assertEqual(field_value_changed_to, field_value_after_update)
