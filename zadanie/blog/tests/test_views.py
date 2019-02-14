@@ -6,32 +6,44 @@ from django.contrib.auth.models import AnonymousUser
 
 from ..forms import EntryForm
 from ..models import Entry
-from ..views import EntryCreateView, EntryCreatedTemplateView, EntryDetailView, EntryListView, EntryUpdateView
+from ..views import (
+    EntryCreateView,
+    EntryCreatedTemplateView,
+    EntryDeleteView,
+    EntryDeletedTemplateView,
+    EntryDetailView,
+    EntryListView,
+    EntryUpdateView,
+)
 from ..utils import hundred_years_from_now, yesterday
 
 
 class TestEntryListViewConstruction(TestCase):
 
+    def setUp(self):
+        self.view = EntryListView()
+        self.request = RequestFactory().get('/fake-url')
+        self.response = EntryListView.as_view()(self.request)
+
     def test_view_inherits_from_correct_class(self):
         class_expected = generic.ListView
-        view = EntryListView()
-        class_given = view.__class__.__base__
+        class_given = self.view.__class__.__base__
         self.assertEqual(class_expected, class_given)
 
-    def test_view_attrs(self):
-        view = EntryListView()
-        self.assertEqual(view.context_object_name, 'entries')
-        self.assertEqual(view.model, Entry)
-        self.assertEqual(view.template_name, 'blog/entries.html')
+    def test_context_object_name_attr(self):
+        context_object_name_expected = 'entries'
+        context_object_name_given = self.view.context_object_name
+        self.assertEqual(context_object_name_expected, context_object_name_given)
 
+    def test_view_refers_to_correct_model_class(self):
+        model_class_expected = Entry
+        model_class_given = self.view.model
+        self.assertEqual(model_class_expected, model_class_given)
 
-class TestAsEntryListViewWithRequestFactory(TestCase):
-
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.request = self.factory.get('/fake-url')
-        self.request.template_name = 'blog/entries.html'
-        self.response = EntryListView.as_view()(self.request)
+    def test_view_has_correct_template_name_attr(self):
+        template_name_expected = 'blog/entries.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
 
     def test_status_code(self):
         status_code_expected = 200
@@ -106,7 +118,6 @@ class TestEntryListViewResponse(TestCase):
         self.assertNotContains(response, text2)
 
 
-
 class TestEntryDetailViewConstruction(TestCase):
 
     def setUp(self):
@@ -122,23 +133,60 @@ class TestEntryDetailViewConstruction(TestCase):
         self.assertEqual(self.view.model, Entry)
         self.assertEqual(self.view.template_name, 'blog/entry-detail.html')
 
+class TestEntryDeleteView(TestCase):
+
+    def setUp(self):
+        url = '/fake-url'
+        self.request = RequestFactory().get(url)
+        self.view = EntryDeleteView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.DeleteView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_uses_correct_template(self):
+        template_name_expected = 'blog/entry-delete.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_view_uses_correct_success_url(self):
+        success_url_expected = '/blog/entries/deleted/'
+        success_url_given = self.view.success_url
+        self.assertEqual(success_url_expected, success_url_given)
+
+    def test_view_refers_to_correct_model_class(self):
+        model_class_expected = Entry
+        model_class_given = self.view.model
+        self.assertEqual(model_class_expected, model_class_given)
+
+    def test_status_code(self):
+        status_code_expected = 200
+        entry_published_1 = Entry.objects.create(
+            title = 'tre',
+            body = 'test',
+            pub_date = yesterday()
+        )
+        pk = entry_published_1.pk
+        request = self.request
+        view = self.view.__class__.as_view()
+        response = view(request, pk = pk)
+        status_code_given = response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
 
 
 class TestEntryDetailViewWithRequestFactory(TestCase):
 
     def setUp(self):
-        self.entry_published_1 = Entry.objects.create(
+        entry_published_1 = Entry.objects.create(
             title = 'tre',
             body = 'test',
             pub_date = yesterday()
         )
-        self.factory = RequestFactory()
-        self.request = self.factory.get('/fake-url')
-        self.request.template_name = 'blog/entry-detail.html'
-        self.response = EntryDetailView.as_view()(
-            self.request,
-            pk = self.entry_published_1.pk
-        )
+        self.request = RequestFactory().get('/fake-url')
+        pk = entry_published_1.pk
+        request = self.request
+        self.response = EntryDetailView.as_view()(request, pk = pk)
 
     def test_status_code(self):
         status_code_expected = 200
@@ -147,16 +195,12 @@ class TestEntryDetailViewWithRequestFactory(TestCase):
 
     def test_status_code_for_anonymous_user(self):
         status_code_expected = 200
-        request = self.request
-        request.user = AnonymousUser()
-        response = EntryDetailView.as_view()(
-            request,
-            pk = self.entry_published_1.pk
-        )
-        status_code_given = response.status_code
+        self.request.user = AnonymousUser()
+        status_code_given = self.response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
     def test_template_used(self):
+        self.request.template_name = 'blog/entry-detail.html'
         template_name_expected = 'blog/entry-detail.html'
         template_name_given = self.response.template_name
         self.assertTrue(template_name_expected, template_name_given)
@@ -204,9 +248,41 @@ class TestEntryDetailViewResponse(TestCase):
         self.assertNotContains(response, text)
 
 
-class TestEntryCreateViewConstruction(TestCase):
+class TestEntryCreatedTemplateView(TestCase):
 
     def setUp(self):
+        factory = RequestFactory()
+        url = '/fake-url'
+        request = factory.get(url)
+        self.view = EntryCreatedTemplateView()
+        self.response = EntryCreatedTemplateView.as_view()(request)
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.TemplateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_template_name_attr(self):
+        template_name_expected = 'blog/entry-created.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_view_uses_correct_template(self):
+        template_name_expected = ['blog/entry-created.html']
+        template_name_given = self.response.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_status_code(self):
+        status_code_expected = 200
+        status_code_given = self.response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
+
+
+class TestEntryCreateView(TestCase):
+
+    def setUp(self):
+        self.data_to_post = {'title':'Pizza', 'body':'some text',}
+        self.path = reverse('blog:entry-create')
         self.view = EntryCreateView()
 
     def test_view_inherits_from_correct_class(self):
@@ -214,73 +290,106 @@ class TestEntryCreateViewConstruction(TestCase):
         class_given = self.view.__class__.__base__
         self.assertEqual(class_expected, class_given)
 
-    def test_view_attrs(self):
-        self.assertEqual(self.view.form_class, EntryForm)
-        self.assertEqual(self.view.model, Entry)
-        self.assertEqual(self.view.success_url, reverse('blog:entry-created'))
-        self.assertEqual(self.view.template_name, 'blog/entry-create.html')
+    def test_view_uses_correct_form_class(self):
+        form_class_expected = EntryForm
+        form_class_given = self.view.form_class
+        self.assertEqual(form_class_expected, form_class_given)
 
+    def test_view_refers_to_correct_model_class(self):
+        model_class_expected = Entry
+        model_class_given = self.view.model
+        self.assertEqual(model_class_expected, model_class_given)
 
-
-class TestEntryCreatedTemplateView(TestCase):
-
-    def setUp(self):
-        factory = RequestFactory()
-        url = '/fake-url'
-        self.request = factory.get(url)
-        self.view = EntryCreatedTemplateView.as_view()
-
-    def test_view_inherits_from_correct_class(self):
-        class_expected = generic.TemplateView
-        class_given = self.view.view_class.__base__
-        self.assertEqual(class_expected, class_given)
-
-    def test_view_uses_correct_template(self):
-        response = self.view(self.request)
-        template_name_expected = ['blog/entry-created.html']
-        template_name_given = response.template_name
+    def test_view_has_correct_template_name_attr(self):
+        template_name_expected = 'blog/entry-create.html'
+        template_name_given = self.view.template_name
         self.assertEqual(template_name_expected, template_name_given)
 
-
-
-class TestEntryCreateView(TestCase):
-
-    def setUp(self):
-        self.data = {'title':'Pizza', 'body':'some text',}
-
-    def test_view_creates_instance(self):
-        self.assertEqual(Entry.objects.count(), 0)
-        path = reverse('blog:entry-create')
-        self.data['pub_date'] = yesterday().strftime('%Y-%m-%d')
-        response = self.client.post(path, data = self.data)
-        self.assertEqual(Entry.objects.last().title, self.data.get('title', None))
-        self.assertEqual(Entry.objects.last().body, self.data.get('body', None))
-        self.assertEqual(Entry.objects.count(), 1)
-        self.assertEqual(response.status_code, 302)
+    def test_get_success_url(self):
+        entry = Entry.objects.create(
+            title = 'due',
+            body = 'test',
+            pub_date = yesterday()
+        )
+        self.view.object = entry
+        viewname = 'blog:entry-created'
+        get_success_url_expected = reverse(viewname)
+        get_success_url_given = self.view.get_success_url()
+        self.assertEqual(get_success_url_expected, get_success_url_given)
 
     def test_view_creates_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = reverse('blog:entry-create')
-        self.data['pub_date'] = yesterday().strftime('%Y-%m-%d')
-        response = self.client.post(path, data = self.data)
-        self.assertEqual(Entry.published.last().title, self.data.get('title', None))
-        self.assertEqual(Entry.published.last().body, self.data.get('body', None))
+        path = self.path
+        data_to_post = self.data_to_post
+        data_to_post['pub_date'] = yesterday().strftime('%Y-%m-%d')
+        request = RequestFactory().post(path, data = data_to_post)
+        view = self.view.__class__.as_view()
+        response = view(request)
+        entry = Entry.objects.last()
+        title_expected = entry.title
+        title_given = data_to_post.get('title', None)
+        self.assertEqual(title_expected, title_given)
+        body_expected = entry.body
+        body_given = data_to_post.get('body', None)
+        self.assertEqual(body_expected, body_given)
         self.assertEqual(Entry.published.count(), 1)
         self.assertEqual(response.status_code, 302)
 
     def test_view_creates_not_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = reverse('blog:entry-create')
-        self.data['pub_date'] = hundred_years_from_now().strftime('%Y-%m-%d')
-        response = self.client.post(path, data = self.data)
+        path = self.path
+        data_to_post = self.data_to_post
+        data_to_post['pub_date'] = hundred_years_from_now().strftime('%Y-%m-%d')
+        request = RequestFactory().post(path, data = data_to_post)
+        view = self.view.__class__.as_view()
+        response = view(request)
         self.assertEqual(Entry.objects.count(), 1)
         self.assertEqual(Entry.published.count(), 0)
-        self.assertEqual(Entry.objects.last().title, self.data.get('title', None))
-        self.assertEqual(Entry.objects.last().body, self.data.get('body', None))
         self.assertEqual(response.status_code, 302)
 
 
 class TestEntryUpdateView(TestCase):
+
+    def setUp(self):
+        self.view = EntryUpdateView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.UpdateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_has_correct_context_object_name_attr(self):
+        context_object_name_expected = 'entry'
+        context_object_name_given = self.view.context_object_name
+        self.assertEqual(context_object_name_expected, context_object_name_given)
+
+    def test_view_uses_correct_form_class(self):
+        form_class_expected = EntryForm
+        form_class_given = self.view.form_class
+        self.assertEqual(form_class_expected, form_class_given)
+
+    def test_view_refers_to_correct_model_class(self):
+        model_class_expected = Entry
+        model_class_given = self.view.model
+        self.assertEqual(model_class_expected, model_class_given)
+
+    def test_view_has_correct_template_name_attr(self):
+        template_name_expected = 'blog/entry-update.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_get_success_url(self):
+        entry_published_1 = Entry.objects.create(
+            title = 'due',
+            body = 'test',
+            pub_date = yesterday()
+        )
+        self.view.object = entry_published_1
+        viewname = 'blog:entry-detail'
+        kwargs = {'pk': entry_published_1.pk}
+        get_success_url_expected = reverse(viewname, kwargs = kwargs)
+        get_success_url_given = self.view.get_success_url()
+        self.assertEqual(get_success_url_expected, get_success_url_given)
 
     def test_view_updates_field(self):
         entry = Entry.objects.create(

@@ -14,6 +14,15 @@ class EntryCreateView(generic.CreateView):
 class EntryCreatedTemplateView(generic.TemplateView):
     template_name = 'blog/entry-created.html'
 
+class EntryDeleteView(generic.DeleteView):
+    form_class = EntryForm
+    model = Entry
+    success_url = '/blog/entries/deleted/'
+    template_name = 'blog/entry-delete.html'
+
+class EntryDeletedTemplateView(generic.TemplateView):
+    template_name = 'blog/entry-deleted.html'
+
 class EntryDetailView(generic.DetailView):
     context_object_name = 'entry'
     model = Entry
@@ -34,6 +43,7 @@ class EntryListView(generic.ListView):
         self.queryset = Entry.published.all()
         queryset = super().get_queryset()
         return queryset
+
 
 
 class EntryUpdateView(generic.UpdateView):

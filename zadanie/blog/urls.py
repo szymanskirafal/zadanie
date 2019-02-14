@@ -9,6 +9,10 @@ urlpatterns = [
         views.EntryDetailView.as_view(),
         name = 'entry-detail'),
     path(
+        'entries/<int:pk>/delete/',
+        views.EntryDeleteView.as_view(),
+        name = 'entry-delete'),
+    path(
         'entries/<int:pk>/update/',
         views.EntryUpdateView.as_view(),
         name = 'entry-update'),
@@ -20,6 +24,10 @@ urlpatterns = [
         'entries/created/',
         views.EntryCreatedTemplateView.as_view(),
         name = 'entry-created'),
+    path(
+        'entries/deleted/',
+        views.EntryDeletedTemplateView.as_view(),
+        name = 'entry-deleted'),
     path(
         'entries/',
         views.EntryListView.as_view(),

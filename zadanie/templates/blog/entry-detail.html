@@ -10,4 +10,7 @@
 <p>body: {{ entry.body|linebreaks }}</p>
 <hr>
 <a class="btn btn-primary" href="{% url 'blog:entry-update' entry.id %}" role="button">Edit</a>
+<br>
+<a class="btn btn-danger" href="{% url 'blog:entry-delete' entry.id %}" role="button">Delete</a>
+
 {% endblock %}
