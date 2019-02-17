@@ -1,9 +1,10 @@
 from django.db import models
 from django.urls import reverse
 from django.test import TestCase
+from django.utils import timezone
 
 from ..models import Entry, PublishedEntryManager
-from ..utils import hundred_years_from_now, yesterday
+from ..utils import hundred_years_from_now
 
 
 class TestEntry(TestCase):
@@ -82,28 +83,62 @@ class TestEntry(TestCase):
         self.assertEqual(verbose_name_plural_expected, verbose_name_plural_given)
 
     def test_str_method(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
         entry = Entry.objects.create(
             title = 'Roma',
             body = 'test',
-            pub_date = yesterday()
+            pub_date = in_the_past
         )
         string_expected = 'Roma'
         string_given = entry.__str__()
         self.assertEqual(string_expected, string_given)
 
     def test_get_absolut_url(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
         entry = Entry.objects.create(
             title = 'Roma',
             body = 'test',
-            pub_date = yesterday()
+            pub_date = in_the_past
         )
         viewname = 'blog:entry-detail'
         kwargs = {'pk': entry.id}
         get_absolut_url_expected = reverse(viewname, kwargs = kwargs)
         get_absolut_url_given = entry.get_absolut_url()
         self.assertEqual(get_absolut_url_expected, get_absolut_url_given)
-"""
-    def get_absolut_url(self):
 
-        return absolut_url
-"""
+
+class TestPublishedEntryManager(TestCase):
+
+    def test_manager_inherits_from_proper_class(self):
+        class_expected = models.Manager
+        class_given = Entry.published.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_manager_returns_proper_queryset(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        in_the_future = timezone.now() + timezone.timedelta(days = 1)
+        entry_published_1 = Entry.objects.create(
+            title = 'uno_publshed',
+            body = 'test',
+            pub_date = in_the_past
+        )
+        entry_published_2 = Entry.objects.create(
+            title = 'due_published',
+            body = 'test',
+            pub_date = in_the_past
+        )
+        entry_not_published_1 = Entry.objects.create(
+            title = 'uno_not_published',
+            body = 'test',
+            pub_date = in_the_future
+        )
+        entry_not_published_2 = Entry.objects.create(
+            title = 'due_not_published',
+            body = 'test',
+            pub_date = in_the_future
+        )
+        queryset_returned = Entry.published.all()
+        self.assertIn(entry_published_1, queryset_returned)
+        self.assertIn(entry_published_2, queryset_returned)
+        self.assertNotIn(entry_not_published_1, queryset_returned)
+        self.assertNotIn(entry_not_published_1, queryset_returned)
