@@ -18,7 +18,7 @@ from ..views import (
 from ..utils import hundred_years_from_now, yesterday
 
 
-class TestEntryListViewConstruction(TestCase):
+class TestEntryListView(TestCase):
 
     def setUp(self):
         self.view = EntryListView()
@@ -117,22 +117,6 @@ class TestEntryListViewResponse(TestCase):
         self.assertNotContains(response, text1)
         self.assertNotContains(response, text2)
 
-
-class TestEntryDetailViewConstruction(TestCase):
-
-    def setUp(self):
-        self.view = EntryDetailView()
-
-    def test_view_inherits_from_correct_class(self):
-        class_expected = generic.DetailView
-        class_given = self.view.__class__.__base__
-        self.assertEqual(class_expected, class_given)
-
-    def test_view_attrs(self):
-        self.assertEqual(self.view.context_object_name, 'entry')
-        self.assertEqual(self.view.model, Entry)
-        self.assertEqual(self.view.template_name, 'blog/entry-detail.html')
-
 class TestEntryDeleteView(TestCase):
 
     def setUp(self):
@@ -175,7 +159,23 @@ class TestEntryDeleteView(TestCase):
         self.assertEqual(status_code_expected, status_code_given)
 
 
-class TestEntryDetailViewWithRequestFactory(TestCase):
+class TestEntryDetailViewConstruction(TestCase):
+
+    def setUp(self):
+        self.view = EntryDetailView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.DetailView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_attrs(self):
+        self.assertEqual(self.view.context_object_name, 'entry')
+        self.assertEqual(self.view.model, Entry)
+        self.assertEqual(self.view.template_name, 'blog/entry-detail.html')
+
+
+class TestEntryDetailViewResponse(TestCase):
 
     def setUp(self):
         entry_published_1 = Entry.objects.create(
@@ -207,7 +207,7 @@ class TestEntryDetailViewWithRequestFactory(TestCase):
 
 
 
-class TestEntryDetailViewResponse(TestCase):
+class TestEntryDetailViewResponseClient(TestCase):
 
     def setUp(self):
         self.entry_not_published = Entry.objects.create(
@@ -248,40 +248,9 @@ class TestEntryDetailViewResponse(TestCase):
         self.assertNotContains(response, text)
 
 
-class TestEntryCreatedTemplateView(TestCase):
+class TestEntryCreateViewConstruction(TestCase):
 
     def setUp(self):
-        factory = RequestFactory()
-        url = '/fake-url'
-        request = factory.get(url)
-        self.view = EntryCreatedTemplateView()
-        self.response = EntryCreatedTemplateView.as_view()(request)
-
-    def test_view_inherits_from_correct_class(self):
-        class_expected = generic.TemplateView
-        class_given = self.view.__class__.__base__
-        self.assertEqual(class_expected, class_given)
-
-    def test_view_template_name_attr(self):
-        template_name_expected = 'blog/entry-created.html'
-        template_name_given = self.view.template_name
-        self.assertEqual(template_name_expected, template_name_given)
-
-    def test_view_uses_correct_template(self):
-        template_name_expected = ['blog/entry-created.html']
-        template_name_given = self.response.template_name
-        self.assertEqual(template_name_expected, template_name_given)
-
-    def test_status_code(self):
-        status_code_expected = 200
-        status_code_given = self.response.status_code
-        self.assertEqual(status_code_expected, status_code_given)
-
-
-class TestEntryCreateView(TestCase):
-
-    def setUp(self):
-        self.data_to_post = {'title':'Pizza', 'body':'some text',}
         self.path = reverse('blog:entry-create')
         self.view = EntryCreateView()
 
@@ -317,23 +286,40 @@ class TestEntryCreateView(TestCase):
         get_success_url_given = self.view.get_success_url()
         self.assertEqual(get_success_url_expected, get_success_url_given)
 
+
+class TestEntryCreateViewResponse(TestCase):
+
+    def setUp(self):
+        self.data_to_post = {
+            'title':'Pizza',
+            'body':'some text',
+            'pub_date': yesterday().strftime('%Y-%m-%d'),
+            }
+        self.path = reverse('blog:entry-create')
+        self.request = RequestFactory().post(self.path, data = self.data_to_post)
+        self.view = EntryCreateView.as_view()
+
     def test_view_creates_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        path = self.path
-        data_to_post = self.data_to_post
-        data_to_post['pub_date'] = yesterday().strftime('%Y-%m-%d')
-        request = RequestFactory().post(path, data = data_to_post)
-        view = self.view.__class__.as_view()
-        response = view(request)
+        self.view(self.request)
+        self.assertEqual(Entry.published.count(), 1)
+
+    def test_view_returns_code_after_creating_instance(self):
+        status_code_expected = 302
+        response = self.view(self.request)
+        status_code_given = response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
+
+    def test_view_creates_published_instance(self):
+        response = self.view(self.request)
         entry = Entry.objects.last()
         title_expected = entry.title
-        title_given = data_to_post.get('title', None)
+        title_given = self.data_to_post.get('title', None)
         self.assertEqual(title_expected, title_given)
         body_expected = entry.body
-        body_given = data_to_post.get('body', None)
+        body_given = self.data_to_post.get('body', None)
         self.assertEqual(body_expected, body_given)
         self.assertEqual(Entry.published.count(), 1)
-        self.assertEqual(response.status_code, 302)
 
     def test_view_creates_not_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
@@ -341,11 +327,42 @@ class TestEntryCreateView(TestCase):
         data_to_post = self.data_to_post
         data_to_post['pub_date'] = hundred_years_from_now().strftime('%Y-%m-%d')
         request = RequestFactory().post(path, data = data_to_post)
-        view = self.view.__class__.as_view()
+        view = self.view
         response = view(request)
         self.assertEqual(Entry.objects.count(), 1)
         self.assertEqual(Entry.published.count(), 0)
         self.assertEqual(response.status_code, 302)
+
+
+
+class TestEntryCreatedTemplateView(TestCase):
+
+    def setUp(self):
+        factory = RequestFactory()
+        url = '/fake-url'
+        request = factory.get(url)
+        self.view = EntryCreatedTemplateView()
+        self.response = EntryCreatedTemplateView.as_view()(request)
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.TemplateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_template_name_attr(self):
+        template_name_expected = 'blog/entry-created.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_view_uses_correct_template(self):
+        template_name_expected = ['blog/entry-created.html']
+        template_name_given = self.response.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+    def test_status_code(self):
+        status_code_expected = 200
+        status_code_given = self.response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
 
 
 class TestEntryUpdateView(TestCase):
