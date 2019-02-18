@@ -47,6 +47,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'articles.apps.ArticlesConfig',
     'blog.apps.BlogConfig',
 ]
 
