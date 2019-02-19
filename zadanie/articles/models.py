@@ -31,10 +31,9 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
-"""
+
     def get_absolut_url(self):
-        viewname = 'articles:article-detail'
+        viewname = 'articles:detail'
         kwargs = {'pk': self.id}
         absolut_url = reverse(viewname, kwargs = kwargs)
         return absolut_url
-"""

@@ -1,0 +1,12 @@
+{% extends "articles/articles-base.html" %}
+
+{% block header %}
+<h1>List of articles.</h1>
+
+{% for article in articles %}
+<a href="{{ article.get_absolut_url }}">{{ article.title }}</a>
+<p>published: {{ article.pub_date }}</p>
+
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "articles/articles-base.html" %}
+
+{% block header %}
+<h1>Article</h1>
+{% endblock %}
+
+{% block main %}
+<p>title: {{ article.title }}</p>
+<p>created: {{ article.created }}</p>
+<p>body: {{ article.body|linebreaks }}</p>
+<hr>
+<a class="btn btn-primary" href="{% url 'articles:update' article.id %}" role="button">Edit</a>
+<br>
+<a class="btn btn-danger" href="{% url 'articles:delete' article.id %}" role="button">Delete</a>
+
+{% endblock %}
