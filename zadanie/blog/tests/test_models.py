@@ -3,8 +3,10 @@ from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
 
+from utilities.utilities import hundred_years_from_now
+
 from ..models import Entry, PublishedEntryManager
-from ..utils import hundred_years_from_now
+
 
 
 class TestEntry(TestCase):

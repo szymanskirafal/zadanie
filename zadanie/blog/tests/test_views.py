@@ -4,6 +4,8 @@ from django.views import generic
 
 from django.contrib.auth.models import AnonymousUser
 
+from utilities.utilities import hundred_years_from_now, yesterday
+
 from ..forms import EntryForm
 from ..models import Entry
 from ..views import (
@@ -15,7 +17,6 @@ from ..views import (
     EntryListView,
     EntryUpdateView,
 )
-from ..utils import hundred_years_from_now, yesterday
 
 
 class TestEntryListView(TestCase):

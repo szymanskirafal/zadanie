@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
-from .utils import hundred_years_from_now
+from utilities.utilities import hundred_years_from_now
 
 
 class PublishedEntryManager(models.Manager):
