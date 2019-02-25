@@ -27,7 +27,7 @@ class Article(models.Model):
 
     class Meta:
         ordering = ['-modified']
-        verbose_name_plural = "Entries"
+        verbose_name_plural = "Articles"
 
     def __str__(self):
         return self.title

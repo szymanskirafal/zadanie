@@ -128,13 +128,13 @@ class TestArticleDetailView(TestCase):
     def setUp(self):
         self.view = ArticleDetailView()
         in_the_past = timezone.now() - timezone.timedelta(days = 1)
-        article_published_1 = Article.objects.create(
+        self.article_published = Article.objects.create(
             title = 'firenze',
             body = 'il duomo',
             pub_date = in_the_past,
         )
         self.request = RequestFactory().get('/fake-url')
-        pk = article_published_1.pk
+        pk = self.article_published.pk
         request = self.request
         self.response = ArticleDetailView.as_view()(request, pk = pk)
 
@@ -177,11 +177,7 @@ class TestArticleDetailView(TestCase):
     def test_get_queryset(self):
         in_the_past = timezone.now() - timezone.timedelta(days = 1)
         in_the_future = timezone.now() + timezone.timedelta(days = 1)
-        article_published = Article.objects.create(
-            title = 'uno_publshed',
-            body = 'test',
-            pub_date = in_the_past
-        )
+        article_published = self.article_published
         article_not_published = Article.objects.create(
             title = 'uno_not_published',
             body = 'test',
