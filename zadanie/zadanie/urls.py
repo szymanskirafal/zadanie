@@ -17,10 +17,13 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from django.views.generic import TemplateView
+
 urlpatterns = [
+    path('', TemplateView.as_view(template_name = "home.html"), name = 'home'),
     path('admin/', admin.site.urls),
-    path('articles/', include('articles.urls', namespace='articles')),
-    path('blog/', include('blog.urls', namespace='blog')),
+    path('articles/', include('articles.urls', namespace = 'articles')),
+    path('blog/', include('blog.urls', namespace = 'blog')),
 ]
 
 if settings.DEBUG:

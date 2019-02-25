@@ -1,6 +1,6 @@
 {% extends "articles/articles-base.html" %}
 
-{% block header %}
+{% block main %}
 <h1>List of articles.</h1>
 
 {% for article in articles %}
@@ -8,5 +8,7 @@
 <p>published: {{ article.pub_date }}</p>
 
 {% endfor %}
+
+<a href="{% url 'articles:create' %}" class="btn btn-lg btn-outline-secondary" role="button">Create New Article</a>
 
 {% endblock %}

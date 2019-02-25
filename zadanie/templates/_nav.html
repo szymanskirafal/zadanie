@@ -5,13 +5,13 @@
   <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
     <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Home</a>
+        <a class="nav-link" href="{% url 'home' %}">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'blog:entries' %}">Entries</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'articles:list' %}">Articles</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'articles:create' %}">Create</a>
       </li>
     </ul>
 

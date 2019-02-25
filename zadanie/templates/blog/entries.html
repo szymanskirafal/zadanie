@@ -1,6 +1,6 @@
 {% extends "blog/entry-base.html" %}
 
-{% block header %}
+{% block main %}
 <h1>List of entries.</h1>
 
 {% for entry in entries %}
@@ -8,5 +8,8 @@
 <p>published: {{ entry.pub_date }}</p>
 
 {% endfor %}
+
+
+<a href="{% url 'blog:entry-create' %}" class="btn btn-lg btn-outline-secondary" role="button">Create New Entry</a>
 
 {% endblock %}

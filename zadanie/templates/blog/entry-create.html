@@ -1,10 +1,8 @@
 {% extends "blog/entry-base.html" %}
 
-{% block header %}
-<h1>Create Entry</h1>
-{% endblock %}
-
 {% block main %}
+<h1>Create Entry</h1>
+
 <form action="" method="post">
   {% csrf_token %}
   {{ form.as_p }}

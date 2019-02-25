@@ -13,7 +13,15 @@
   <body>
     <div class="container">
       {% block content %}
-      <h1>Zadanie</h1>
+
+      {% block nav %}
+      {% include "_nav.html" %}
+      {% endblock %}
+
+      {% block main %}
+      {% endblock %}
+
+
       {% endblock %}
     </div>
 
