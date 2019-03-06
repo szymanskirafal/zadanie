@@ -3,9 +3,5 @@
 {% block main %}
 <h1>Edit Article</h1>
 
-<form action="" method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <input type="submit" value="Submit">
-</form>
+{% include "_tweak-form.html" %}
 {% endblock %}

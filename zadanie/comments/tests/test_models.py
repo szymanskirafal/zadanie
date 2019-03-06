@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from django.test import TestCase
@@ -29,3 +31,24 @@ class TestEntry(TestCase):
         field_type_given = field.__class__
         self.assertEqual(field_type_expected, field_type_given)
         self.assertTrue(field.auto_now_add)
+
+    def test_content_type_field(self):
+        field = self.model._meta.get_field('content_type')
+        field_type_expected = models.ForeignKey
+        field_type_given = field.__class__
+        self.assertEqual(field_type_expected, field_type_given)
+        field_related_model_expected = ContentType
+        field_related_model_given = field.related_model
+        self.assertEqual(field_related_model_expected, field_related_model_given)
+
+    def test_object_id_field(self):
+        field = self.model._meta.get_field('object_id')
+        field_type_expected = models.PositiveIntegerField
+        field_type_given = field.__class__
+        self.assertEqual(field_type_expected, field_type_given)
+
+    def test_content_object_field(self):
+        field = self.model._meta.get_field('content_object')
+        field_type_expected = GenericForeignKey
+        field_type_given = field.__class__
+        self.assertEqual(field_type_expected, field_type_given)

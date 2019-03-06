@@ -44,6 +44,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'coverage',
     'debug_toolbar',
+    'widget_tweaks',
 ]
 
 LOCAL_APPS = [

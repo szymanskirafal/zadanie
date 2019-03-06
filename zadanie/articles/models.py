@@ -1,7 +1,9 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from comments.models import Comment
 from utilities.utilities import hundred_years_from_now
 
 
@@ -21,6 +23,7 @@ class Article(models.Model):
     modified = models.DateTimeField(auto_now = True)
     pub_date = models.DateTimeField(default = hundred_years_from_now)
     comments_count = models.PositiveSmallIntegerField(default = 0)
+    comments = GenericRelation(Comment)
 
     objects = models.Manager()
     published = PublishedArticleManager()

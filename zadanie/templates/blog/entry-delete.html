@@ -5,12 +5,6 @@
 <h1>Delete Entry</h1>
 <p>title: {{ entry.title }}</p>
 
-
-
-<form action="" method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <input type="submit" value="Submit">
-</form>
+{% include "_tweak-form.html" %}
 
 {% endblock %}

@@ -1,5 +1,9 @@
+from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views import generic
+from django.views import generic, View
+
+from comments.forms import CommentForm
+from comments.models import Comment
 
 from .forms import EntryForm
 from .models import Entry
@@ -23,15 +27,55 @@ class EntryDeleteView(generic.DeleteView):
 class EntryDeletedTemplateView(generic.TemplateView):
     template_name = 'blog/entry-deleted.html'
 
-class EntryDetailView(generic.DetailView):
+
+class EntryDetailView(View):
+
+    def get(self, request, *args, **kwargs):
+        view = EntryDetailJustDisplayView.as_view()
+        return view(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        view = EntryDetailAddCommentView.as_view()
+        return view(request, *args, **kwargs)
+
+
+class EntryDetailJustDisplayView(generic.DetailView):
     context_object_name = 'entry'
     model = Entry
+    queryset = Entry.published
     template_name = 'blog/entry-detail.html'
 
-    def get_queryset(self):
-        self.queryset = Entry.published.all()
-        queryset = super().get_queryset()
-        return queryset
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        context['comments'] = self.object.comments.all()
+        return context
+
+
+class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
+    form_class = CommentForm
+    model = Entry
+    queryset = Entry.published
+    success_url = '/blog/entries/created/'
+    template_name = 'blog/entry-detail.html'
+
+    def form_valid(self, form):
+        body = form.cleaned_data['body']
+        Comment.objects.create(
+            content_object = self.object,
+            body = body,
+        )
+        return HttpResponseRedirect(self.get_success_url())
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def get_success_url(self):
+        viewname = 'blog:entry-detail'
+        kwargs = {'pk': self.object.pk}
+        success_url = reverse(viewname, kwargs = kwargs)
+        return success_url
 
 
 class EntryListView(generic.ListView):

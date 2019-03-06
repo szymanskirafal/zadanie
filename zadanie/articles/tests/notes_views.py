@@ -1,7 +1,7 @@
 from django.test import RequestFactory, TestCase
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views import generic, View
+from django.views import generic
 
 from django.contrib.auth.models import AnonymousUser
 
@@ -13,8 +13,6 @@ from ..views import (
     ArticleDeleteView,
     ArticleDeletedTemplateView,
     ArticleDetailView,
-    ArticleDetailAddCommentView,
-    ArticleDetailJustDisplayView,
     ArticlesListView,
     ArticleUpdateView,
 )
@@ -127,48 +125,18 @@ class TestArticleCreatedTemplateView(TestCase):
 
 class TestArticleDetailView(TestCase):
 
-    def test_view_inherits_from_correct_class(self):
-        class_expected = View
-        class_given = ArticleDetailView().__class__.__base__
-        self.assertEqual(class_expected, class_given)
-
-    def test_view_get_method_runs_another_view(self):
-        view_class_expected = ArticleDetailJustDisplayView
-        url = '/fake-url'
-        request = RequestFactory().get(url)
-        in_the_past = timezone.now() - timezone.timedelta(days = 1)
-        article_published = Article.objects.create(
-            title = 'tre',
-            body = 'test',
-            pub_date = in_the_past,
-        )
-        pk = article_published.pk
-        response = ArticleDetailView.get(self, request, pk = pk)
-        view_used_after_get = response.__dict__['context_data']['view']
-        view_class_given = view_used_after_get.__class__
-        self.assertEqual(view_class_expected, view_class_given)
-
-    def test_view_post_method_runs_another_view(self):
-        view_class_expected = ArticleDetailAddCommentView
-        url = '/fake-url'
-        request = RequestFactory().post(url)
-        in_the_past = timezone.now() - timezone.timedelta(days = 1)
-        article_published = Article.objects.create(
-            title = 'tre',
-            body = 'test',
-            pub_date = in_the_past,
-        )
-        pk = article_published.pk
-        response = ArticleDetailView.post(self, request, pk = pk)
-        view_used_after_get = response.context_data['view']
-        view_class_given = view_used_after_get.__class__
-        self.assertEqual(view_class_expected, view_class_given)
-
-
-class TestArticleDetailJustDisplayView(TestCase):
-
     def setUp(self):
-        self.view = ArticleDetailJustDisplayView()
+        self.view = ArticleDetailView()
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        self.article_published = Article.objects.create(
+            title = 'firenze',
+            body = 'il duomo',
+            pub_date = in_the_past,
+        )
+        self.request = RequestFactory().get('/fake-url')
+        pk = self.article_published.pk
+        request = self.request
+        self.response = ArticleDetailView.as_view()(request, pk = pk)
 
     def test_view_inherits_from_correct_class(self):
         class_expected = generic.DetailView
@@ -185,52 +153,41 @@ class TestArticleDetailJustDisplayView(TestCase):
         model_class_given = self.view.model
         self.assertEqual(model_class_expected, model_class_given)
 
-    def test_view_queryset_attr(self):
-        queryset_expected = Article.published
-        queryset_given = self.view.queryset
-        self.assertEqual(queryset_expected, queryset_given)
-
     def test_view_has_correct_template_name_attr(self):
         template_name_expected = 'articles/article-detail.html'
         template_name_given = self.view.template_name
         self.assertEqual(template_name_expected, template_name_given)
 
-    def test_get_context_data_should_return_variables_in_context(self):
-        url = '/fake-url'
-        request = RequestFactory().get(url)
-        in_the_past = timezone.now() - timezone.timedelta(days = 1)
-        article_published = Article.objects.create(
-            title = 'tre',
-            body = 'test',
-            pub_date = in_the_past,
-        )
-        article_published.comments.create(body = 'few words')
-        pk = article_published.pk
-        response = ArticleDetailView.get(self, request, pk = pk)
-        self.assertTrue(response.context_data['form'])
-        self.assertTrue(response.context_data['comments'])
-
-    def test_z_status_code(self):
+    def test_status_code(self):
         status_code_expected = 200
-        url = '/fake-url'
-        request = RequestFactory().get(url)
-        in_the_past = timezone.now() - timezone.timedelta(days = 1)
-        article_published = Article.objects.create(
-            title = 'tre',
-            body = 'test',
-            pub_date = in_the_past,
-        )
-        article_published.comments.create(body = 'few words')
-        pk = article_published.pk
-        response = ArticleDetailView.get(self, request, pk = pk)
-        status_code_given = response.status_code
+        status_code_given = self.response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
-class TestArticleDetailAddCommentView(TestCase):
+    def test_status_code_for_anonymous_user(self):
+        status_code_expected = 200
+        self.request.user = AnonymousUser()
+        status_code_given = self.response.status_code
+        self.assertEqual(status_code_expected, status_code_given)
 
-    def test_start_here(self):
-        self.assertFalse('test here')
-        
+    def test_template_used(self):
+        template_name_expected = 'articles/article-detail.html'
+        template_name_given = self.response.template_name
+        self.assertTrue(template_name_expected, template_name_given)
+
+    def test_get_queryset(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        in_the_future = timezone.now() + timezone.timedelta(days = 1)
+        article_published = self.article_published
+        article_not_published = Article.objects.create(
+            title = 'uno_not_published',
+            body = 'test',
+            pub_date = in_the_future
+        )
+        queryset_returned = self.view.get_queryset()
+        self.assertIn(article_published, queryset_returned)
+        self.assertNotIn(article_not_published, queryset_returned)
+
+
 class TestArticleDeleteView(TestCase):
 
     def setUp(self):
