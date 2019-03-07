@@ -41,7 +41,6 @@ class EntryDetailView(View):
 
 class EntryDetailJustDisplayView(generic.DetailView):
     context_object_name = 'entry'
-    model = Entry
     queryset = Entry.published
     template_name = 'blog/entry-detail.html'
 
@@ -54,7 +53,6 @@ class EntryDetailJustDisplayView(generic.DetailView):
 
 class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
     form_class = CommentForm
-    model = Entry
     queryset = Entry.published
     success_url = '/blog/entries/created/'
     template_name = 'blog/entry-detail.html'
@@ -62,18 +60,15 @@ class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormVi
     def form_valid(self, form):
         body = form.cleaned_data['body']
         Comment.objects.create(
-            content_object = self.object,
+            content_object = self.get_object(),
             body = body,
         )
         return HttpResponseRedirect(self.get_success_url())
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
     def get_success_url(self):
         viewname = 'blog:entry-detail'
-        kwargs = {'pk': self.object.pk}
+        obj = self.get_object()
+        kwargs = {'pk': obj.pk}
         success_url = reverse(viewname, kwargs = kwargs)
         return success_url
 
@@ -84,10 +79,8 @@ class EntryListView(generic.ListView):
     template_name = 'blog/entries.html'
 
     def get_queryset(self):
-        self.queryset = Entry.published.all()
-        queryset = super().get_queryset()
+        queryset = Entry.published.all()
         return queryset
-
 
 
 class EntryUpdateView(generic.UpdateView):

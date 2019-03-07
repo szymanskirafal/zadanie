@@ -180,11 +180,6 @@ class TestArticleDetailJustDisplayView(TestCase):
         context_object_name_given = self.view.context_object_name
         self.assertEqual(context_object_name_expected, context_object_name_given)
 
-    def test_view_refers_to_correct_model_class(self):
-        model_class_expected = Article
-        model_class_given = self.view.model
-        self.assertEqual(model_class_expected, model_class_given)
-
     def test_view_queryset_attr(self):
         queryset_expected = Article.published
         queryset_given = self.view.queryset
@@ -210,7 +205,7 @@ class TestArticleDetailJustDisplayView(TestCase):
         self.assertTrue(response.context_data['form'])
         self.assertTrue(response.context_data['comments'])
 
-    def test_z_status_code(self):
+    def test_status_code(self):
         status_code_expected = 200
         url = '/fake-url'
         request = RequestFactory().get(url)
@@ -228,9 +223,19 @@ class TestArticleDetailJustDisplayView(TestCase):
 
 class TestArticleDetailAddCommentView(TestCase):
 
-    def test_start_here(self):
-        self.assertFalse('test here')
-        
+    def setUp(self):
+        self.view = ArticleDetailAddCommentView()
+
+    def test_view_inherits_from_correct_classes(self):
+        class_expected_as_first_on_the_left = generic.detail.SingleObjectMixin
+        class_expected_as_second_on_the_left = generic.FormView
+        classes_given = self.view.__class__.__bases__
+        class_given_as_first_on_the_left = classes_given[0]
+        class_given_as_second_on_the_left = classes_given[1]
+        self.assertEqual(class_expected_as_first_on_the_left, class_given_as_first_on_the_left)
+        self.assertEqual(class_expected_as_second_on_the_left, class_given_as_second_on_the_left)
+
+
 class TestArticleDeleteView(TestCase):
 
     def setUp(self):
@@ -274,7 +279,7 @@ class TestArticleDeleteView(TestCase):
         self.assertEqual(status_code_expected, status_code_given)
 
 
-class TestArticleListView(TestCase):
+class TestArticlesListView(TestCase):
 
     def setUp(self):
         self.view = ArticlesListView()
@@ -316,6 +321,28 @@ class TestArticleListView(TestCase):
         template_name_expected = 'articles/list.html'
         template_name_given = self.response.template_name
         self.assertTrue(template_name_expected, template_name_given)
+
+    def test_get_queryset(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        in_the_future = timezone.now() + timezone.timedelta(days = 1)
+        article_published = Article.objects.create(
+            title = 'Genoa',
+            body = 'published',
+            pub_date = in_the_past,
+        )
+        article_not_published = Article.objects.create(
+            title = 'Verona',
+            body = 'not published',
+            pub_date = in_the_future,
+        )
+        view = self.view
+        view.request = self.request
+        queryset_given = view.get_queryset()
+        object_supposed_to_be_in_queryset = article_published
+        object_not_supposed_to_be_in_queryset = article_not_published
+        self.assertIn(object_supposed_to_be_in_queryset, queryset_given)
+        self.assertNotIn(object_not_supposed_to_be_in_queryset, queryset_given)
+
 
 
 

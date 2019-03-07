@@ -1,5 +1,6 @@
 from django.test import RequestFactory, TestCase
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views import generic
 
 from django.contrib.auth.models import AnonymousUser
@@ -61,6 +62,27 @@ class TestEntryListView(TestCase):
         template_name_expected = 'blog/entries.html'
         template_name_given = self.response.template_name
         self.assertTrue(template_name_expected, template_name_given)
+
+    def test_get_queryset(self):
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        in_the_future = timezone.now() + timezone.timedelta(days = 1)
+        entry_published = Entry.objects.create(
+            title = 'Genoa',
+            body = 'published',
+            pub_date = in_the_past,
+        )
+        entry_not_published = Entry.objects.create(
+            title = 'Verona',
+            body = 'not published',
+            pub_date = in_the_future,
+        )
+        view = self.view
+        view.request = self.request
+        queryset_given = view.get_queryset()
+        object_supposed_to_be_in_queryset = article_published
+        object_not_supposed_to_be_in_queryset = article_not_published
+        self.assertIn(object_supposed_to_be_in_queryset, queryset_given)
+        self.assertNotIn(object_not_supposed_to_be_in_queryset, queryset_given)
 
 
 class TestEntryListViewResponse(TestCase):

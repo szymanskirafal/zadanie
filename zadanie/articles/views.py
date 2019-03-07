@@ -32,7 +32,6 @@ class ArticleDetailView(View):
 
 class ArticleDetailJustDisplayView(generic.DetailView):
     context_object_name = 'article'
-    model = Article
     queryset = Article.published
     template_name = 'articles/article-detail.html'
 
@@ -45,25 +44,21 @@ class ArticleDetailJustDisplayView(generic.DetailView):
 
 class ArticleDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
     form_class = CommentForm
-    model = Article
     queryset = Article.published
     template_name = 'articles/article-detail.html'
 
     def form_valid(self, form):
         body = form.cleaned_data['body']
         Comment.objects.create(
-            content_object = self.object,
+            content_object = self.get_object(),
             body = body,
         )
         return HttpResponseRedirect(self.get_success_url())
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
     def get_success_url(self):
         viewname = 'articles:detail'
-        kwargs = {'pk': self.object.pk}
+        obj = self.get_object()
+        kwargs = {'pk': obj.pk}
         success_url = reverse(viewname, kwargs = kwargs)
         return success_url
 
@@ -80,8 +75,11 @@ class ArticleDeletedTemplateView(generic.TemplateView):
 class ArticlesListView(generic.ListView):
     context_object_name = 'articles'
     model = Article
-    queryset = Article.published
     template_name = 'articles/articles.html'
+
+    def get_queryset(self):
+        queryset = Article.published.all()
+        return queryset
 
 
 class ArticleUpdateView(generic.UpdateView):
