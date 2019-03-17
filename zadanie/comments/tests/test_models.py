@@ -8,7 +8,7 @@ from ..models import Comment
 
 
 
-class TestEntry(TestCase):
+class TestComment(TestCase):
 
     def setUp(self):
         self.model = Comment

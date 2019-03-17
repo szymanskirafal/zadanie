@@ -1,9 +1,12 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
 
 from utilities.utilities import hundred_years_from_now
+
+from comments.models import Comment
 
 from ..models import Article, PublishedArticleManager
 
@@ -67,7 +70,16 @@ class TestEntry(TestCase):
         default_given = field.default
         self.assertEqual(default_expected, default_given)
 
-    def test_model_objects_attr_is_proper_class(self):
+    def test_comments_field(self):
+        field = Article._meta.get_field('comments')
+        class_expected = GenericRelation
+        class_given = field.__class__
+        self.assertEqual(class_expected, class_given)
+        related_model_expected = Comment
+        related_model_given = field.related_model
+        self.assertEqual(related_model_expected, related_model_given)
+
+    def test_model_objects_attr_is_proper_class_manager(self):
         class_expected = models.Manager
         class_given = self.model.objects.__class__
         self.assertEqual(class_expected, class_given)
