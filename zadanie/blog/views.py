@@ -54,7 +54,6 @@ class EntryDetailJustDisplayView(generic.DetailView):
 class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
     form_class = CommentForm
     queryset = Entry.published
-    success_url = '/blog/entries/created/'
     template_name = 'blog/entry-detail.html'
 
     def form_valid(self, form):
@@ -71,6 +70,10 @@ class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormVi
         kwargs = {'pk': obj.pk}
         success_url = reverse(viewname, kwargs = kwargs)
         return success_url
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
 
 
 class EntryListView(generic.ListView):

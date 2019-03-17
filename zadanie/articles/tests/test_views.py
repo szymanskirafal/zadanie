@@ -160,8 +160,8 @@ class TestArticleDetailView(TestCase):
         )
         pk = article_published.pk
         response = ArticleDetailView.post(self, request, pk = pk)
-        view_used_after_get = response.context_data['view']
-        view_class_given = view_used_after_get.__class__
+        view_used_after_post = response.context_data['view']
+        view_class_given = view_used_after_post.__class__
         self.assertEqual(view_class_expected, view_class_given)
 
 

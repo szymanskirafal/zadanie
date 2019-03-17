@@ -62,6 +62,10 @@ class ArticleDetailAddCommentView(generic.detail.SingleObjectMixin, generic.Form
         success_url = reverse(viewname, kwargs = kwargs)
         return success_url
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
 
 class ArticleDeleteView(generic.DeleteView):
     form_class = ArticleForm
