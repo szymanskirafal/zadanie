@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views import generic, View
 
 from comments.forms import CommentForm
@@ -15,14 +15,17 @@ class EntryCreateView(generic.CreateView):
     success_url = '/blog/entries/created/'
     template_name = 'blog/entry-create.html'
 
+
 class EntryCreatedTemplateView(generic.TemplateView):
     template_name = 'blog/entry-created.html'
+
 
 class EntryDeleteView(generic.DeleteView):
     form_class = EntryForm
     model = Entry
     success_url = '/blog/entries/deleted/'
     template_name = 'blog/entry-delete.html'
+
 
 class EntryDeletedTemplateView(generic.TemplateView):
     template_name = 'blog/entry-deleted.html'
@@ -51,7 +54,11 @@ class EntryDetailJustDisplayView(generic.DetailView):
         return context
 
 
-class EntryDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
+class EntryDetailAddCommentView(
+    generic.detail.SingleObjectMixin,
+    generic.FormView,
+):
+
     form_class = CommentForm
     queryset = Entry.published
     template_name = 'blog/entry-detail.html'

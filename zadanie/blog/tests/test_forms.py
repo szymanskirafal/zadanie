@@ -18,6 +18,6 @@ class TestEntryForm(TestCase):
         self.assertTrue(model_expected, model_given)
 
     def test_form_defines_correct_fields_set(self):
-        fields_set_expected = ['title', 'body', 'pub_date',]
+        fields_set_expected = ['title', 'body', 'pub_date', ]
         fields_set_given = EntryForm._meta.fields
         self.assertTrue(fields_set_expected, fields_set_given)

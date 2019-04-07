@@ -91,9 +91,9 @@ class TestEntry(TestCase):
         self.assertEqual(ordering_expected, ordering_given)
 
     def test_model_verbose_name_plural(self):
-        verbose_name_plural_expected = "Entries"
+        verbose_name_plural_expctd = "Entries"
         verbose_name_plural_given = Entry._meta.verbose_name_plural
-        self.assertEqual(verbose_name_plural_expected, verbose_name_plural_given)
+        self.assertEqual(verbose_name_plural_expctd, verbose_name_plural_given)
 
     def test_str_method(self):
         in_the_past = timezone.now() - timezone.timedelta(days = 1)
@@ -154,4 +154,4 @@ class TestPublishedEntryManager(TestCase):
         self.assertIn(entry_published_1, queryset_returned)
         self.assertIn(entry_published_2, queryset_returned)
         self.assertNotIn(entry_not_published_1, queryset_returned)
-        self.assertNotIn(entry_not_published_1, queryset_returned)
+        self.assertNotIn(entry_not_published_2, queryset_returned)

@@ -1,5 +1,5 @@
 from django.test import RequestFactory, TestCase
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils import timezone
 from django.views import generic, View
 
@@ -19,8 +19,6 @@ from ..views import (
     EntryUpdateView,
 )
 
-from utilities.utilities import hundred_years_from_now, yesterday
-
 
 class TestEntryCreateView(TestCase):
 
@@ -29,11 +27,11 @@ class TestEntryCreateView(TestCase):
         self.path = reverse('blog:entry-create')
         self.view = EntryCreateView()
         self.data_to_post = {
-            'title':'Pizza',
-            'body':'some text',
+            'title': 'Pizza',
+            'body': 'some text',
             'pub_date': in_the_past.strftime('%Y-%m-%d'),
-            }
-        self.request = RequestFactory().post(self.path, data = self.data_to_post)
+        }
+        self.request = RequestFactory().post(self.path, data=self.data_to_post)
 
     def test_view_inherits_from_correct_class(self):
         class_expected = generic.CreateView
@@ -66,19 +64,16 @@ class TestEntryCreateView(TestCase):
         viewname = 'blog:entry-created'
         get_success_url_expected = reverse(viewname)
         get_success_url_given = self.view.get_success_url()
-        articles = Entry.objects.all()
         self.assertEqual(get_success_url_expected, get_success_url_given)
 
     def test_view_creates_published_instance(self):
         self.assertEqual(Entry.objects.count(), 0)
-        response = EntryCreateView.as_view()(self.request)
-        articles = Entry.objects.all()
+        EntryCreateView.as_view()(self.request)
         self.assertEqual(Entry.published.count(), 1)
 
     def test_view_returns_expected_code_after_creating_instance(self):
         status_code_expected = 302
         response = EntryCreateView.as_view()(self.request)
-        articles = Entry.objects.all()
         status_code_given = response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
@@ -89,7 +84,6 @@ class TestEntryCreateView(TestCase):
         data_to_post['pub_date'] = in_the_future.strftime('%Y-%m-%d')
         request = RequestFactory().post(self.path, data = data_to_post)
         response = EntryCreateView.as_view()(request)
-        articles = Entry.objects.all()
         self.assertEqual(Entry.objects.count(), 1)
         self.assertEqual(Entry.published.count(), 0)
         self.assertEqual(response.status_code, 302)
@@ -176,9 +170,9 @@ class TestEntryDetailJustDisplayView(TestCase):
         self.assertEqual(class_expected, class_given)
 
     def test_context_object_name_attr(self):
-        context_object_name_expected = 'entry'
+        context_object_name_expctd = 'entry'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(context_object_name_expctd, context_object_name_given)
 
     def test_view_queryset_attr(self):
         queryset_expected = Entry.published
@@ -221,6 +215,7 @@ class TestEntryDetailJustDisplayView(TestCase):
         status_code_given = response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
+
 class TestEntryDetailAddCommentView(TestCase):
 
     def setUp(self):
@@ -232,8 +227,14 @@ class TestEntryDetailAddCommentView(TestCase):
         classes_given = self.view.__class__.__bases__
         class_given_as_first_on_the_left = classes_given[0]
         class_given_as_second_on_the_left = classes_given[1]
-        self.assertEqual(class_expected_as_first_on_the_left, class_given_as_first_on_the_left)
-        self.assertEqual(class_expected_as_second_on_the_left, class_given_as_second_on_the_left)
+        self.assertEqual(
+            class_expected_as_first_on_the_left,
+            class_given_as_first_on_the_left
+        )
+        self.assertEqual(
+            class_expected_as_second_on_the_left,
+            class_given_as_second_on_the_left
+        )
 
 
 class TestEntryDeleteView(TestCase):
@@ -279,6 +280,24 @@ class TestEntryDeleteView(TestCase):
         self.assertEqual(status_code_expected, status_code_given)
 
 
+class TestEntryDeletedTemplateView(TestCase):
+
+    def setUp(self):
+        url = '/fake-url'
+        self.request = RequestFactory().get(url)
+        self.view = EntryDeletedTemplateView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.TemplateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_uses_correct_template(self):
+        template_name_expected = 'blog/entry-deleted.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+
 class TestEntryListView(TestCase):
 
     def setUp(self):
@@ -292,9 +311,9 @@ class TestEntryListView(TestCase):
         self.assertEqual(class_expected, class_given)
 
     def test_context_object_name_attr(self):
-        context_object_name_expected = 'entries'
+        context_object_name_expctd = 'entries'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(context_object_name_expctd, context_object_name_given)
 
     def test_view_refers_to_correct_model_class(self):
         model_class_expected = Entry
@@ -355,9 +374,9 @@ class TestEntryUpdateView(TestCase):
         self.assertEqual(class_expected, class_given)
 
     def test_context_object_name_attr(self):
-        context_object_name_expected = 'entry'
+        context_object_name_expctd = 'entry'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(context_object_name_expctd, context_object_name_given)
 
     def test_view_uses_correct_form_class(self):
         form_class_expected = EntryForm

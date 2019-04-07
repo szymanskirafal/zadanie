@@ -1,6 +1,7 @@
 from django.test import TestCase
 
-from django.urls import get_script_prefix, resolve, reverse
+from django.urls import resolve, reverse
+
 
 class TestEntryCreateUrl(TestCase):
 
@@ -74,7 +75,6 @@ class TestArticleCreatedUrl(TestCase):
         self.assertEqual(view_name_given, view_name_expected)
 
 
-
 class TestArticlesDetailUrl(TestCase):
 
     def setUp(self):
@@ -114,6 +114,7 @@ class TestArticlesDetailUrl(TestCase):
         kwargs_given = self.url_resolved.kwargs
         kwargs_expected = {'pk': 1}
         self.assertEqual(kwargs_given, kwargs_expected)
+
 
 class TestArticlesDeletelUrl(TestCase):
 

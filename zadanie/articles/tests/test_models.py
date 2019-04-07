@@ -11,7 +11,6 @@ from comments.models import Comment
 from ..models import Article, PublishedArticleManager
 
 
-
 class TestEntry(TestCase):
 
     def setUp(self):
@@ -97,7 +96,10 @@ class TestEntry(TestCase):
     def test_model_verbose_name_plural(self):
         verbose_name_plural_expected = "Articles"
         verbose_name_plural_given = self.model._meta.verbose_name_plural
-        self.assertEqual(verbose_name_plural_expected, verbose_name_plural_given)
+        self.assertEqual(
+            verbose_name_plural_expected,
+            verbose_name_plural_given
+        )
 
     def test_str_method(self):
         in_the_past = timezone.now() - timezone.timedelta(days = 1)
@@ -158,4 +160,4 @@ class TestPublishedArticleManager(TestCase):
         self.assertIn(article_published_1, queryset_returned)
         self.assertIn(article_published_2, queryset_returned)
         self.assertNotIn(article_not_published_1, queryset_returned)
-        self.assertNotIn(article_not_published_1, queryset_returned)
+        self.assertNotIn(article_not_published_2, queryset_returned)

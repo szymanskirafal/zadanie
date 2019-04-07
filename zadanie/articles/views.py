@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views import generic, View
 
 from comments.forms import CommentForm
@@ -7,6 +7,7 @@ from comments.models import Comment
 
 from .forms import ArticleForm
 from .models import Article
+
 
 class ArticleCreateView(generic.CreateView):
     form_class = ArticleForm
@@ -42,7 +43,10 @@ class ArticleDetailJustDisplayView(generic.DetailView):
         return context
 
 
-class ArticleDetailAddCommentView(generic.detail.SingleObjectMixin, generic.FormView):
+class ArticleDetailAddCommentView(
+    generic.detail.SingleObjectMixin,
+    generic.FormView
+):
     form_class = CommentForm
     queryset = Article.published
     template_name = 'articles/article-detail.html'
@@ -73,8 +77,10 @@ class ArticleDeleteView(generic.DeleteView):
     success_url = '/articles/deleted/'
     template_name = 'articles/article-delete.html'
 
+
 class ArticleDeletedTemplateView(generic.TemplateView):
     template_name = 'articles/article-deleted.html'
+
 
 class ArticlesListView(generic.ListView):
     context_object_name = 'articles'

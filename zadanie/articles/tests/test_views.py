@@ -1,5 +1,5 @@
 from django.test import RequestFactory, TestCase
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils import timezone
 from django.views import generic, View
 
@@ -18,7 +18,6 @@ from ..views import (
     ArticlesListView,
     ArticleUpdateView,
 )
-from utilities.utilities import hundred_years_from_now, yesterday
 
 
 class TestArticleCreateView(TestCase):
@@ -28,11 +27,11 @@ class TestArticleCreateView(TestCase):
         self.path = reverse('articles:create')
         self.view = ArticleCreateView()
         self.data_to_post = {
-            'title':'Pizza',
-            'body':'some text',
+            'title': 'Pizza',
+            'body': 'some text',
             'pub_date': in_the_past.strftime('%Y-%m-%d'),
-            }
-        self.request = RequestFactory().post(self.path, data = self.data_to_post)
+        }
+        self.request = RequestFactory().post(self.path, data=self.data_to_post)
 
     def test_view_inherits_from_correct_class(self):
         class_expected = generic.CreateView
@@ -65,19 +64,21 @@ class TestArticleCreateView(TestCase):
         viewname = 'articles:created'
         get_success_url_expected = reverse(viewname)
         get_success_url_given = self.view.get_success_url()
-        articles = Article.objects.all()
         self.assertEqual(get_success_url_expected, get_success_url_given)
 
     def test_view_creates_published_instance(self):
         self.assertEqual(Article.objects.count(), 0)
-        response = ArticleCreateView.as_view()(self.request)
-        articles = Article.objects.all()
+        in_the_past = timezone.now() - timezone.timedelta(days = 1)
+        Article.objects.create(
+            title = 'milano',
+            body = 'test',
+            pub_date = in_the_past
+        )
         self.assertEqual(Article.published.count(), 1)
 
     def test_view_returns_expected_code_after_creating_instance(self):
         status_code_expected = 302
         response = ArticleCreateView.as_view()(self.request)
-        articles = Article.objects.all()
         status_code_given = response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
@@ -88,11 +89,9 @@ class TestArticleCreateView(TestCase):
         data_to_post['pub_date'] = in_the_future.strftime('%Y-%m-%d')
         request = RequestFactory().post(self.path, data = data_to_post)
         response = ArticleCreateView.as_view()(request)
-        articles = Article.objects.all()
         self.assertEqual(Article.objects.count(), 1)
         self.assertEqual(Article.published.count(), 0)
         self.assertEqual(response.status_code, 302)
-
 
 
 class TestArticleCreatedTemplateView(TestCase):
@@ -178,7 +177,10 @@ class TestArticleDetailJustDisplayView(TestCase):
     def test_context_object_name_attr(self):
         context_object_name_expected = 'article'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(
+            context_object_name_expected,
+            context_object_name_given
+        )
 
     def test_view_queryset_attr(self):
         queryset_expected = Article.published
@@ -221,6 +223,7 @@ class TestArticleDetailJustDisplayView(TestCase):
         status_code_given = response.status_code
         self.assertEqual(status_code_expected, status_code_given)
 
+
 class TestArticleDetailAddCommentView(TestCase):
 
     def setUp(self):
@@ -232,8 +235,14 @@ class TestArticleDetailAddCommentView(TestCase):
         classes_given = self.view.__class__.__bases__
         class_given_as_first_on_the_left = classes_given[0]
         class_given_as_second_on_the_left = classes_given[1]
-        self.assertEqual(class_expected_as_first_on_the_left, class_given_as_first_on_the_left)
-        self.assertEqual(class_expected_as_second_on_the_left, class_given_as_second_on_the_left)
+        self.assertEqual(
+            class_expected_as_first_on_the_left,
+            class_given_as_first_on_the_left
+        )
+        self.assertEqual(
+            class_expected_as_second_on_the_left,
+            class_given_as_second_on_the_left
+        )
 
 
 class TestArticleDeleteView(TestCase):
@@ -279,6 +288,24 @@ class TestArticleDeleteView(TestCase):
         self.assertEqual(status_code_expected, status_code_given)
 
 
+class TestArticleDeletedTemplateView(TestCase):
+
+    def setUp(self):
+        url = '/fake-url'
+        self.request = RequestFactory().get(url)
+        self.view = ArticleDeletedTemplateView()
+
+    def test_view_inherits_from_correct_class(self):
+        class_expected = generic.TemplateView
+        class_given = self.view.__class__.__base__
+        self.assertEqual(class_expected, class_given)
+
+    def test_view_uses_correct_template(self):
+        template_name_expected = 'articles/article-deleted.html'
+        template_name_given = self.view.template_name
+        self.assertEqual(template_name_expected, template_name_given)
+
+
 class TestArticlesListView(TestCase):
 
     def setUp(self):
@@ -294,7 +321,10 @@ class TestArticlesListView(TestCase):
     def test_context_object_name_attr(self):
         context_object_name_expected = 'articles'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(
+            context_object_name_expected,
+            context_object_name_given
+        )
 
     def test_view_refers_to_correct_model_class(self):
         model_class_expected = Article
@@ -344,8 +374,6 @@ class TestArticlesListView(TestCase):
         self.assertNotIn(object_not_supposed_to_be_in_queryset, queryset_given)
 
 
-
-
 class TestArticleUpdateView(TestCase):
 
     def setUp(self):
@@ -359,7 +387,10 @@ class TestArticleUpdateView(TestCase):
     def test_context_object_name_attr(self):
         context_object_name_expected = 'article'
         context_object_name_given = self.view.context_object_name
-        self.assertEqual(context_object_name_expected, context_object_name_given)
+        self.assertEqual(
+            context_object_name_expected,
+            context_object_name_given
+        )
 
     def test_view_uses_correct_form_class(self):
         form_class_expected = ArticleForm
