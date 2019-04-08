@@ -8,16 +8,14 @@ class TestCodeFormat(TestCase):
     def test_style(self):
         list_of_error_codes_to_ignore = ['E251']
         list_of_files = [
-            'articles/admin.py',
-            'articles/apps.py',
-            'articles/forms.py',
-            'articles/models.py',
-            'articles/urls.py',
-            'articles/views.py',
+            'comments/admin.py',
+            'comments/apps.py',
+            'comments/forms.py',
+            'comments/models.py',
         ]
         style = pycodestyle.StyleGuide(
             ignore = list_of_error_codes_to_ignore,
-            quiet = True,
+            # quiet = True,
         )
         result = style.check_files(list_of_files)
         number_of_errors_expected = 0
