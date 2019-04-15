@@ -5,10 +5,10 @@ from ..forms import CommentForm
 from ..models import Comment
 
 
-class TestArticleForm(TestCase):
+class TestCommentForm(TestCase):
 
     def test_form_inherits_from_proper_class(self):
-        class_expected = ModelForm
+        class_expected = ModelForm.__class__
         class_given = CommentForm.__class__
         self.assertEqual(class_expected, class_given)
 
