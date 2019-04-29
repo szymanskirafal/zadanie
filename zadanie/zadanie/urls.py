@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('articles/', include('articles.urls', namespace = 'articles')),
     path('blog/', include('blog.urls', namespace = 'blog')),
+    path('search/', include('haystack.urls')),
 ]
 
 if settings.DEBUG:
