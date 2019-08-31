@@ -5,6 +5,7 @@
 <p>title: {{ entry.title }}</p>
 <p>created: {{ entry.created }}</p>
 <p>body: {{ entry.body|linebreaks }}</p>
+
 <div class="btn-group" role="group" aria-label="first group">
   <a class="btn btn-outline-primary" href="{% url 'blog:entry-update' entry.id %}" role="button">Edit</a>
 </div>
@@ -12,12 +13,12 @@
   <a class="btn btn-outline-danger" href="{% url 'blog:entry-delete' entry.id %}" role="button">Delete</a>
 </div>
 <hr>
+<h2>Comments</h2>
 <p>Add your comment.</p>
 
 {% include "_tweak-form.html" %}
 <hr>
-
-<p>Comments:</p>
+<p>{{ entry.comments_count }} Comments:</p>
 {% for comment in comments %}
 <p>{{ comment.body }}</p>
 {% endfor %}

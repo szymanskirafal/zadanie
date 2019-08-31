@@ -4,6 +4,7 @@ from django.views import generic, View
 
 from comments.forms import CommentForm
 from comments.models import Comment
+from comments.tasks import increase_comments_count
 
 from .forms import EntryForm
 from .models import Entry
@@ -65,10 +66,15 @@ class EntryDetailAddCommentView(
 
     def form_valid(self, form):
         body = form.cleaned_data['body']
+        obj = self.get_object()
         Comment.objects.create(
-            content_object = self.get_object(),
+            content_object = obj,
             body = body,
         )
+        app_name = obj._meta.app_label
+        model_name = obj._meta.model_name
+        pk = obj.pk
+        increase_comments_count.delay(app_name, model_name, pk)
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
