@@ -57,6 +57,7 @@ LOCAL_APPS = [
     'articles.apps.ArticlesConfig',
     'blog.apps.BlogConfig',
     'comments.apps.CommentsConfig',
+    'users.apps.UsersConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -218,6 +219,12 @@ SOCIALACCOUNT_PROVIDERS = {
 SITE_ID = 1
 
 # ----------------
+# DJANGO-REGISTRATION
+# ----------------
+
+ACCOUNT_ACTIVATION_DAYS = 7
+
+# ----------------
 # HAYSTACK
 # ----------------
 
@@ -228,3 +235,8 @@ HAYSTACK_CONNECTIONS = {
         'ADMIN_URL': 'http://127.0.0.1:8983/solr/admin/cores',
     },
 }
+
+# ----------------
+# Users
+# ----------------
+AUTH_USER_MODEL = 'users.CustomUser'
