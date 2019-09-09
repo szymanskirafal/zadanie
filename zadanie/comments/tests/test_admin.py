@@ -2,7 +2,6 @@ from django.contrib.admin import ModelAdmin
 from django.test import TestCase
 
 from ..admin import CommentAdmin
-from ..models import Comment
 
 
 class TestArticleAdmin(TestCase):

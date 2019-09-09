@@ -2,7 +2,6 @@ from django.contrib.admin import ModelAdmin
 from django.test import TestCase
 
 from ..admin import ArticleAdmin
-from ..models import Article
 
 
 class TestArticleAdmin(TestCase):

@@ -3,10 +3,6 @@ from celery import task
 from django.apps import apps
 from django.db.models import F
 
-from articles.models import Article
-from blog.models import Entry
-
-from .models import Comment
 
 @task
 def increase_comments_count(app_name, model_name, pk):

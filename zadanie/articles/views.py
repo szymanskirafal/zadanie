@@ -10,7 +10,6 @@ from .forms import ArticleForm
 from .models import Article
 
 
-
 class ArticleCreateView(generic.CreateView):
     form_class = ArticleForm
     model = Article
