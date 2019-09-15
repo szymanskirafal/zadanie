@@ -165,7 +165,6 @@ DEBUG_TOOLBAR_CONFIG = {
 INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']
 
 
-
 # ----------------
 # CELERY
 # ----------------
@@ -222,6 +221,14 @@ SITE_ID = 2
 # ----------------
 
 ACCOUNT_ACTIVATION_DAYS = 7
+
+# ----------------------------
+# EMAIL
+# ----------------------------
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
 
 # ----------------
 # HAYSTACK

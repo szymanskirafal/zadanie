@@ -1,0 +1,6 @@
+You created account for {{ user }} on {{ site }}.
+The account is not activated yet.
+Click the link attached below to activate account, please.
+This link will expire in {{ expiration_days }} days.
+
+{{site}}/accounts/activate/{{ activation_key }}/
