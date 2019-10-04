@@ -199,6 +199,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'email',
             'name',
             'first_name',
+            'friends',
             'last_name',
             'verified',
             'locale',
@@ -215,6 +216,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SITE_ID = 2
+
 
 # ----------------
 # DJANGO-REGISTRATION

@@ -46,8 +46,7 @@ class ArticleDetailJustDisplayView(generic.DetailView):
 
 class ArticleDetailAddCommentView(
     generic.detail.SingleObjectMixin,
-    generic.FormView,
-):
+    generic.FormView,):
 
     form_class = CommentForm
     queryset = Article.published

@@ -1,6 +1,8 @@
 {% extends "articles/articles-base.html" %}
 
 {% block main %}
+<p>user: {{ user }}</p>
+<p>user id: {{ user.id }}</p>
 <h1>List of articles.</h1>
 
 {% for article in articles %}
